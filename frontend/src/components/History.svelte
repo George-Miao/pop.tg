@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { Check, Close } from '@icon-park/svg'
   import { HistoryStatus, ManageEvent } from '../model'
   import type { HistoryProp } from '../model'
   import InlineButton from './InlineButton.svelte'
@@ -7,12 +8,16 @@
   import { isValidUrl, sleep } from '@/util'
 
   export let prop: HistoryProp
+
   let newValue: string = ''
 
   let focused = false
   let status = HistoryStatus.Normal
 
   const eventDispatcher = createEventDispatcher()
+
+  const doneSvg = Check({ size: '1.5rem', theme: 'outline', fill: 'white' })
+  const errorSvg = Close({ size: '1.5rem', theme: 'outline', fill: 'white' })
 
   let doneMsg: string | null = null
   let errorMsg: string | null = null
@@ -76,7 +81,7 @@
             }
           })
           .catch(e => {
-            error(`Error requesting: ${e}`)
+            error(`${e}`)
           })
         break
       }
@@ -102,16 +107,13 @@
         updateRecord({ key: prop.key, value: newValue, ttl: prop.ttl })
           .then(e => {
             if (!e.success) {
-              error(`Error updating: [${e.status}] ${e.status_text}`)
+              error(`[${e.status}] ${e.status_text}`)
             } else {
-              done(`Done updatating ${prop.key}`).then(
-                () => (prop.oldUrl = newValue)
-              )
+              done(`Updated`).then(() => (prop.oldUrl = newValue))
             }
           })
           .catch(e => {
-            eventDispatcher('alert', `Error requesting: ${e}`)
-            status = HistoryStatus.Normal
+            error(e)
           })
           .finally(() => {
             newValue = ''
@@ -215,13 +217,15 @@
     class="done history-inner status"
     class:hidden={status !== HistoryStatus.Done}
   >
+    <div class="indicator">{@html doneSvg}</div>
     <p>{doneMsg}</p>
   </div>
   <div
     class="error history-inner status"
     class:hidden={status !== HistoryStatus.Error}
   >
-    {errorMsg}
+    <div class="indicator">{@html errorSvg}</div>
+    <p>{errorMsg}</p>
   </div>
   <div
     class="loading history-inner status"
@@ -335,7 +339,7 @@
   }
 
   .urls p:last-child {
-    color: #3797ff;
+    color: var(--blue);
   }
 
   @keyframes spin {
@@ -347,11 +351,11 @@
     }
   }
   .loading i {
-    color: rgba(44, 134, 252, 0.8);
+    color: var(--blue);
   }
 
   .error {
-    color: rgba(250, 65, 59, 0.8);
+    color: var(--red);
   }
 
   .done {
@@ -362,32 +366,78 @@
   }
 
   .done p {
-    margin-left: 20%;
+    position: absolute;
+    z-index: 10;
+  }
+
+  .error {
+    position: relative;
+    overflow: hidden;
+    justify-content: flex-end;
+    border-radius: inherit;
+  }
+
+  .error p {
+    position: absolute;
     z-index: 10;
   }
 
   @keyframes left-to-right {
     from {
-      left: -100%;
+      left: -4rem;
     }
     to {
-      left: -85%;
+      left: 0;
     }
   }
 
-  .done::before {
-    content: '';
+  .done .indicator {
+    background: var(--green);
+  }
+
+  .error .indicator {
+    background: var(--red);
+  }
+
+  .indicator {
     position: absolute;
     height: 100%;
-    width: 100%;
-    background: #4dcb62;
+    width: 4rem;
+
     animation: left-to-right 1s;
-    left: -85%;
+    left: 0;
+    display: flex;
+    flex-direction: row-reverse;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .indicator svg {
+    z-index: 10;
+  }
+
+  @keyframes left-to-right-p {
+    from {
+      left: 2rem;
+    }
+    to {
+      left: 6rem;
+    }
+  }
+
+  .done p {
+    animation: left-to-right-p 1s;
+    left: 6rem;
+  }
+
+  .error p {
+    animation: left-to-right-p 1s;
+    left: 6rem;
   }
 
   .loading-icon {
     display: block;
-    color: rgba(255, 255, 255, 0.98);
+    color: white;
     font-size: 1.3rem;
     animation: spin 0.7s infinite;
   }

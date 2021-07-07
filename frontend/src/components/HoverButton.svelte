@@ -51,7 +51,7 @@
     overflow: hidden;
     border: none;
     position: relative;
-    background-color: #007bfc;
+    background-color: var(--blue);
   }
 
   .disabled {

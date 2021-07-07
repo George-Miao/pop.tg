@@ -172,7 +172,7 @@
     height: 4rem;
     box-shadow: 0 0 2px 0 #fca5a8;
     border-radius: 3px;
-    color: #fd464f;
+    color: var(--red);
     font-weight: 700;
     background-color: #fbeded;
   }

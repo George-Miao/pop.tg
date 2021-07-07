@@ -5,6 +5,11 @@
 <Panel />
 
 <style>
+  :global(:root) {
+    --red: rgba(250, 65, 59, 0.8);
+    --green: rgb(46, 204, 64, 0.8);
+    --blue: rgb(55, 151, 255, 0.8);
+  }
   :global(*),
   :global(::after),
   :global(::before) {

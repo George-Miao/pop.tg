@@ -1,3 +1,4 @@
+import { timeout } from './util'
 import type {
   DelResponse,
   ListRequest,
@@ -29,13 +30,16 @@ export const requestApi = async <T = undefined, R = unknown>(
     test ? 'http://localhost:8787/api/' : 'https://pop.tg/api/'
   )
   param?.forEach((k, v) => url.searchParams.set(k, v))
-  return (await fetch(url.toString(), {
-    method: method,
-    body: JSON.stringify(prop),
-    headers: {
-      'Content-Type': 'Application/json'
-    }
-  }).then(e => e.json())) as Promise<ResponseObject<R>>
+  return timeout(
+    fetch(url.toString(), {
+      method: method,
+      body: JSON.stringify(prop),
+      headers: {
+        'Content-Type': 'Application/json'
+      }
+    }).then(e => e.json()),
+    2000
+  ) as Promise<ResponseObject<R>>
 }
 
 export const newRecord = async (request: { key: string } & PostRequest) => {
