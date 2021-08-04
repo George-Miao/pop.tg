@@ -1,18 +1,31 @@
 <script lang="ts">
   import { fade } from 'svelte/transition'
+  import { writable } from 'svelte/store'
+  import { setContext, tick } from 'svelte'
+
+  import { genToken } from '@back/utils'
   import History from './History.svelte'
   import HoverButton from './HoverButton.svelte'
   import Input from './Input.svelte'
   import { newRecord } from '../api'
-  import type { Callback, HistoryProp } from '../model'
-  import { isValidUrl } from '../util'
-  import { genToken } from '@back/utils'
+  import { GoButtonStatus } from '../model'
+  import type { Callback } from '../model'
+  import {
+    isValidToken,
+    isValidUrl,
+    loadHistories,
+    saveHistories,
+    timeout
+  } from '../util'
 
   let storedFocusCallback: undefined | Callback = undefined
 
-  let url = 'https://'
+  const add = writable('')
 
-  let loading = false
+  setContext('newRecord', add)
+
+  let url = 'https://'
+  let key = genToken(5)
 
   const buttonRadius = 4.5
 
@@ -43,75 +56,102 @@
     }, 3000)
   }
 
-  let histories: HistoryProp[] = [
-    {
-      key: 'abc',
-      newUrl: 'https://pop.tg/abc',
-      oldUrl: 'https://youtube.com',
-      token: 'aiusdhiauhwduiahd',
-      ttl: 300,
-      focusedCallback
-    },
-    {
-      key: 'abd',
-      newUrl: 'https://pop.tg/abd',
-      oldUrl:
-        'https://youtube.com/asoduhauifghauiopfhuioahduiopqahdauio;dhuiopafhuopawghduoahop;dh9uiopdh',
-      token: 'aiusdhiauhwduiahd',
-      focusedCallback
-    }
-  ]
+  let buttonStatus = GoButtonStatus.Disabled
 
-  const handleGo = (e: CustomEvent) => {
-    if (loading) return
-    if (!url.startsWith('http')) {
-      alert('Invalid url: Should start with http or https')
-      return
-    }
+  let histories = loadHistories()
+
+  const validate = () => {
     if (!isValidUrl(url)) {
       alert('Invalid url')
-      return
+      return false
     }
-    const key = genToken(6)
-    const obj = {
+    if (!isValidToken(key)) {
+      alert('Invalid token: 5 - 12 chars (a-z, A-Z and 0-9)')
+      return false
+    }
+    return true
+  }
+
+  const handleGo = () => {
+    if (buttonStatus === GoButtonStatus.Loading) return
+    if (!validate()) return
+
+    buttonStatus = GoButtonStatus.Loading
+
+    const request = {
       key,
-      newUrl: `https://pop.tg/${key}`,
-      oldUrl: url,
-      focusedCallback,
-      token: genToken()
+      value: url
     }
-    url = ''
-    loading = true
-    setTimeout(() => {
-      histories = [obj, ...histories]
-      console.log(obj)
-      loading = false
-    }, 3000 * Math.random() + 1000)
+
+    newRecord(request)
+      .then(resp => {
+        if (resp.success && resp.content.body) {
+          const body = resp.content.body
+          const obj = {
+            key: body.key,
+            token: body.token,
+            oldUrl: body.value,
+            newUrl: `https://pop.tg/${body.key}`,
+            focusedCallback
+          }
+          if (histories.length > 0) histories = [obj, ...histories]
+          else histories = [obj]
+          saveHistories(histories)
+          buttonStatus = GoButtonStatus.Disabled
+          tick().then(() => add.set(body.key))
+        } else {
+          buttonStatus = GoButtonStatus.Disabled
+          alert(`[${resp.status}] ${resp.status_text}`)
+        }
+      })
+      .catch(e => {
+        buttonStatus = GoButtonStatus.Disabled
+        alert(e)
+        console.error(e)
+      })
+    url = 'https://'
+    key = genToken(5)
   }
 
   const deleteThis = (e: CustomEvent<{ key: string }>) => {
     histories = histories.filter(v => v.key !== e.detail.key)
+    saveHistories(histories)
   }
 
   const handleAlert = (e: CustomEvent<string>) => {
     alert(e.detail)
   }
+
+  const handleInput = () => {
+    if (isValidUrl(url) && isValidToken(key)) {
+      buttonStatus = GoButtonStatus.Normal
+    } else {
+      buttonStatus = GoButtonStatus.Disabled
+    }
+  }
 </script>
 
 <div class="outter" on:mousedown|self={clearFocusCallback}>
-  <div class="box panel">
-    <Input bind:value={url} />
+  <div class="panel">
+    <Input
+      bind:url
+      bind:key
+      on:enter={handleGo}
+      on:input={handleInput}
+      disabled={buttonStatus === GoButtonStatus.Loading}
+    />
+
     <HoverButton
+      status={buttonStatus}
       radius={buttonRadius + 'rem'}
       size={{
         height: buttonRadius * 2 + 'rem',
         width: buttonRadius * 2 + 'rem'
       }}
-      disabled={loading}
       id="big-button"
       on:click={handleGo}
     >
-      {#if loading}
+      {#if buttonStatus === GoButtonStatus.Loading}
         <i class="iconfont load-icon">&#xe646;</i>
       {:else}
         <svg
@@ -136,8 +176,13 @@
     <div class="alerts" transition:fade>{alertMsg}</div>
   {/if}
   <div class="histories" class:dodging={alerting}>
-    {#each histories as history}
-      <History prop={history} on:delete={deleteThis} on:alert={handleAlert} />
+    {#each histories as history (history.key)}
+      <History
+        prop={history}
+        {focusedCallback}
+        on:delete={deleteThis}
+        on:alert={handleAlert}
+      />
     {/each}
   </div>
 </div>
@@ -155,10 +200,11 @@
   .panel {
     position: relative;
     width: min(max(40%, 32rem), 90%);
-    height: 14rem;
+    max-width: 35rem;
     display: flex;
     justify-content: center;
     margin-bottom: 2rem;
+    flex-direction: column;
   }
 
   .alerts {
@@ -212,10 +258,10 @@
   }
 
   :global(#big-button) {
-    position: absolute !important;
-    bottom: -2rem;
-    right: -2rem;
+    position: absolute;
+    right: -3rem;
     z-index: 10;
+    margin: unset;
   }
 
   @keyframes spin {
@@ -228,7 +274,7 @@
   }
 
   .load-icon {
-    display: block;
+    display: inline-block;
     color: rgba(255, 255, 255, 0.98);
     font-size: 4rem;
     animation: spin 0.7s infinite;
@@ -236,7 +282,7 @@
 
   @media only screen and (max-width: 700px) {
     .panel {
-      flex-wrap: wrap;
+      width: min(max(40%, 24rem), 80%);
     }
 
     .histories {
@@ -244,8 +290,18 @@
     }
 
     :global(#big-button) {
-      bottom: -2rem;
-      right: -1rem;
+      position: relative;
+      box-shadow: 0px 4px 30px rgb(0 0 0 / 26%);
+      margin-top: 1rem;
+      height: 6rem;
+      border-radius: 5px;
+      width: unset !important;
+      height: unset !important;
+      border-radius: 5px !important;
+      right: unset;
+    }
+    :global(#big-button .content svg) {
+      transform: scale(0.7);
     }
   }
 </style>

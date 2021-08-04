@@ -17,7 +17,7 @@ export enum Method {
   Delete = 'DELETE'
 }
 
-const test = true
+const test = false
 
 export const requestApi = async <T = undefined, R = unknown>(
   endpoint: string,
@@ -27,19 +27,14 @@ export const requestApi = async <T = undefined, R = unknown>(
 ) => {
   const url = new URL(
     endpoint,
-    test ? 'http://localhost:8787/api/' : 'https://pop.tg/api/'
+    test ? 'http://localho.st:8787/api/' : 'https://pop.tg/api/'
   )
-  param?.forEach((k, v) => url.searchParams.set(k, v))
-  return timeout(
-    fetch(url.toString(), {
-      method: method,
-      body: JSON.stringify(prop),
-      headers: {
-        'Content-Type': 'Application/json'
-      }
-    }).then(e => e.json()),
-    2000
-  ) as Promise<ResponseObject<R>>
+  param?.forEach((v, k) => url.searchParams.set(k, v))
+  return fetch(url.toString(), {
+    method: method,
+    body: JSON.stringify(prop),
+    mode: 'cors'
+  }).then(e => e.json()) as Promise<ResponseObject<R>>
 }
 
 export const newRecord = async (request: { key: string } & PostRequest) => {
@@ -61,19 +56,26 @@ export const listRecords = async (request: ListRequest) => {
   )
 }
 
-export const updateRecord = async (request: { key: string } & PutRequest) => {
-  const { key, ...body } = request
+export const updateRecord = async (
+  request: { key: string; token: string } & PutRequest
+) => {
+  const { key, token, ...body } = request
+  const param = new URLSearchParams()
+  param.set('token', request.token)
   return await requestApi<PutRequest, PutResponse>(
     `records/${key}`,
     Method.Put,
-    undefined,
+    param,
     body
   )
 }
 
-export const deleteRecord = async (request: { key: string }) => {
+export const deleteRecord = async (request: { key: string; token: string }) => {
+  const param = new URLSearchParams()
+  param.set('token', request.token)
   return await requestApi<undefined, DelResponse>(
     `records/${request.key}`,
-    Method.Delete
+    Method.Delete,
+    param
   )
 }

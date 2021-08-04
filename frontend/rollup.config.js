@@ -2,6 +2,7 @@ import resolve from '@rollup/plugin-node-resolve'
 import commonjs from '@rollup/plugin-commonjs'
 import alias from '@rollup/plugin-alias'
 import svelte from 'rollup-plugin-svelte'
+import { visualizer } from 'rollup-plugin-visualizer'
 import { terser } from 'rollup-plugin-terser'
 import typescript from 'rollup-plugin-typescript2'
 import css from 'rollup-plugin-import-css'
@@ -61,12 +62,12 @@ export default {
     resolve({
       extensions: ['.js', '.ts']
     }),
-    typescript({
-      // include: [path.resolve(__dirname, '../backend/src/**'), 'src/**']
-    }),
+    typescript(),
     commonjs(),
     css(),
-
+    // Give stats about the build
+    // Size, file etc.
+    production && visualizer(),
     // If we're building for production (npm run build
     // instead of npm run dev), minify
     production && terser()

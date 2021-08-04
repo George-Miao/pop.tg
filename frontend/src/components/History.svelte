@@ -1,18 +1,29 @@
 <script lang="ts">
   import { Check, Close } from '@icon-park/svg'
+  import { slide } from 'svelte/transition'
   import { HistoryStatus, ManageEvent } from '../model'
-  import type { HistoryProp } from '../model'
+  import type { HistoryStored, Callback } from '../model'
   import InlineButton from './InlineButton.svelte'
-  import { createEventDispatcher } from 'svelte'
+  import { createEventDispatcher, getContext } from 'svelte'
   import { deleteRecord, updateRecord } from '@/api'
-  import { isValidUrl, sleep } from '@/util'
+  import { copy, isValidUrl, sleep } from '@/util'
+  import type { Writable } from 'svelte/store'
 
-  export let prop: HistoryProp
-
-  let newValue: string = ''
+  export let prop: HistoryStored
+  export let focusedCallback: (cb: Callback) => void
 
   let focused = false
   let status = HistoryStatus.Normal
+  let newValue: string = ''
+
+  let add: Writable<string> = getContext('newRecord')
+
+  add.subscribe(e => {
+    if (e === prop.key) {
+      focusedCallback(restoreStatus)
+      focused = true
+    }
+  })
 
   const eventDispatcher = createEventDispatcher()
 
@@ -48,7 +59,6 @@
   }
 
   const manage = (type: ManageEvent) => (e: CustomEvent) => {
-    console.log('manage')
     if (!focused) {
       historyClicked()
       return
@@ -68,7 +78,7 @@
       case ManageEvent.RemoveConfirm: {
         status = HistoryStatus.Loading
         // Try remove
-        deleteRecord({ key: prop.key })
+        deleteRecord({ key: prop.key, token: prop.token })
           .then(e => {
             if (!e.success) {
               error(`Error deleting: [${e.status}] ${e.status_text}`)
@@ -104,12 +114,21 @@
           return
         }
         status = HistoryStatus.Loading
-        updateRecord({ key: prop.key, value: newValue, ttl: prop.ttl })
+        updateRecord({
+          key: prop.key,
+          token: prop.token,
+          value: newValue,
+          ttl: prop.ttl
+        })
           .then(e => {
-            if (!e.success) {
+            const body = e.content.body
+            if (!e.success || !body) {
               error(`[${e.status}] ${e.status_text}`)
             } else {
-              done(`Updated`).then(() => (prop.oldUrl = newValue))
+              done(`Updated`).then(() => {
+                prop.oldUrl = newValue
+                prop.token = body.token
+              })
             }
           })
           .catch(e => {
@@ -122,12 +141,12 @@
         break
       }
       case ManageEvent.Copy: {
-        done('Copied')
+        copy(prop.newUrl).then(() => done('Copied'))
       }
     }
   }
 
-  const exit = () => {
+  const restoreStatus = () => {
     cleanMsg()
     status = HistoryStatus.Normal
     focused = false
@@ -135,15 +154,17 @@
 
   const historyClicked = () => {
     if (focused) {
-      if (status === HistoryStatus.Normal) exit()
+      if (status === HistoryStatus.Normal) {
+        window.open(prop.newUrl)
+      }
     } else {
-      prop.focusedCallback(exit)
+      focusedCallback(restoreStatus)
       focused = true
     }
   }
 </script>
 
-<div class="history" on:click={historyClicked} class:focused>
+<div class="history" on:click={historyClicked} class:focused in:slide>
   <div
     class="normal history-inner"
     class:hidden={status !== HistoryStatus.Normal}
@@ -167,15 +188,15 @@
       hoverColor="rgba(44, 134, 252, 0.8)"
     />
     <div class="urls left">
-      <p class="old">{prop.oldUrl}</p>
-      <p class="new">{prop.newUrl}</p>
+      <p class="old noselect">{prop.oldUrl}</p>
+      <p class="new noselect">{prop.newUrl}</p>
     </div>
   </div>
   <div
     class="confirm-remove history-inner"
     class:hidden={status !== HistoryStatus.Removing}
   >
-    <div class="left">
+    <div class="left noselect">
       <span>Confirm delete?</span>
     </div>
     <InlineButton
@@ -218,14 +239,14 @@
     class:hidden={status !== HistoryStatus.Done}
   >
     <div class="indicator">{@html doneSvg}</div>
-    <p>{doneMsg}</p>
+    <p class="noselect">{doneMsg}</p>
   </div>
   <div
     class="error history-inner status"
     class:hidden={status !== HistoryStatus.Error}
   >
     <div class="indicator">{@html errorSvg}</div>
-    <p>{errorMsg}</p>
+    <p class="noselect">{errorMsg}</p>
   </div>
   <div
     class="loading history-inner status"
@@ -248,8 +269,8 @@
 
   .history {
     position: relative;
-    cursor: pointer;
     border-radius: 3px;
+    transition: background 0.3s ease, box-shadow 0.3s ease;
   }
 
   .history::after {
@@ -292,6 +313,10 @@
     align-items: center;
   }
 
+  .normal {
+    cursor: pointer;
+  }
+
   .status {
     justify-content: center;
   }
@@ -331,23 +356,25 @@
     white-space: nowrap;
     text-overflow: ellipsis;
     overflow: hidden;
-    font-size: 0.9rem;
   }
 
   .urls p:first-child {
     color: rgba(63, 63, 63, 0.678);
+    font-size: 0.8rem;
+    top: 0.4rem;
   }
 
   .urls p:last-child {
     color: var(--blue);
+    font-size: 1.1rem;
   }
 
   @keyframes spin {
     from {
-      transform: rotate(0turn);
+      transform: rotate(0.3turn);
     }
     to {
-      transform: rotate(-1turn);
+      transform: rotate(1.3turn);
     }
   }
   .loading i {

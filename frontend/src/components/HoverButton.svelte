@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { GoButtonStatus } from '@/model'
+
   import { createEventDispatcher } from 'svelte'
 
   export let size = {
@@ -7,9 +9,12 @@
   }
   export let radius = '0.5rem'
   export let id = ''
+  export let status: GoButtonStatus = GoButtonStatus.Normal
   export let disabled = false
 
   const dispatch = createEventDispatcher()
+
+  let clicking = false
 
   const clicked = () => {
     dispatch('click', {})
@@ -31,11 +36,13 @@
 </script>
 
 <button
-  class="effect-button"
+  class="effect-button {status}"
+  class:clicking
   on:mousemove={moved}
+  on:mousedown={() => (clicking = true)}
+  on:mouseup={() => (clicking = false)}
   on:click={clicked}
   style="width: {size.width}; height: {size.height}; border-radius: {radius}"
-  class:disabled
   {id}
 >
   <span class="content">
@@ -47,15 +54,23 @@
 <style>
   .effect-button {
     box-shadow: 0 0.5em 1em -0.125em rgba(10, 10, 10, 0.2);
-    cursor: pointer;
     overflow: hidden;
     border: none;
     position: relative;
-    background-color: var(--blue);
+    transition: background-color 0.3s ease;
+    background-color: #007bfc;
+  }
+
+  .normal {
+    cursor: pointer;
+  }
+
+  .loading {
+    cursor: wait;
   }
 
   .disabled {
-    cursor: wait;
+    cursor: not-allowed;
   }
 
   .effect-layer {
@@ -67,18 +82,25 @@
     width: 0;
     height: 0;
     background: radial-gradient(circle closest-side, #51b9ff, transparent);
-    color: red;
     transform: translate(-50%, -50%);
     transition: width 0.2s ease, height 0.2s ease;
   }
-
   .content {
     position: relative;
     z-index: 6;
   }
 
-  .effect-button:hover:not(.disabled) .effect-layer {
+  .effect-button:hover .effect-layer {
     width: 300px;
     height: 300px;
+  }
+
+  .clicking .effect-layer {
+    width: 200px !important;
+    height: 200px !important;
+  }
+
+  .clicking .effect-layer {
+    background: radial-gradient(circle closest-side, #5eccff, transparent);
   }
 </style>

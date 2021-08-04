@@ -107,7 +107,11 @@ export const respond = (
   })
 }
 
-export const respondRaw = (ctx: Context, raw: string, init?: ResponseInit) => {
+export const respondRaw = (
+  ctx: Context,
+  raw?: string | null,
+  init?: ResponseInit
+) => {
   ctx.respondWith(
     new Response(raw, {
       headers: {

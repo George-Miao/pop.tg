@@ -23,7 +23,7 @@ import postSchema from './schema/post.schema'
 import putSchema from './schema/put.schema'
 import { own_url } from '.'
 
-const keyPattern = '^[a-zA-Z][a-zA-Z0-9_-]{0,11}$'
+const keyPattern = '^[a-zA-Z0-9_-]{2,12}$'
 const prefix = 'url'
 
 const validateEndpoint = (endpoint: string) => {
@@ -101,14 +101,14 @@ const put = defineMiddleware(async ctx => {
 
   const body = await validator<PutRequest>(ctx, putSchema)
 
-  const stored = await KV.get<URLRecordInKv>(`${prefix}-${key}`)
+  const stored = await KV.get<URLRecordInKv>(`${prefix}-${key}`, 'json')
 
   if (!stored) {
     err(ctx)('RecordNotFound', `Record ${key} not found`)
     return
   }
 
-  if (stored.token !== token && stored.token !== AUTH) {
+  if (stored.token !== token && token !== AUTH) {
     err(ctx)('AuthorizeFailed', `Authorized failed, your token is invalid`)
     return
   }
@@ -144,15 +144,16 @@ const del = defineMiddleware(async ctx => {
     ])
   }
 
-  const stored = await KV.get<URLRecordInKv>(`${prefix}-${key}`)
+  const stored = await KV.get<URLRecordInKv>(`${prefix}-${key}`, 'json')
 
   if (!stored) {
     err(ctx)('RecordNotFound', `Record ${key} not found`)
     return
   }
 
-  if (stored.token !== token && stored.token !== AUTH) {
+  if (stored.token !== token && AUTH !== token) {
     err(ctx)('AuthorizeFailed', `Authorized failed, your token is invalid`)
+    return
   }
 
   await KV.delete(`${prefix}-${key}`)

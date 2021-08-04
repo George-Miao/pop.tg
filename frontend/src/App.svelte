@@ -1,25 +1,37 @@
 <script lang="ts">
   import Panel from './components/Panel.svelte'
+  import { GithubOne, SendEmail, PeopleTopCard } from '@icon-park/svg'
+
+  const svgInit = { size: '2rem', fill: '#4c4c4c' }
 </script>
 
+<div class="links">
+  <a class="icon" href="https://github.com/George-Miao/pop.tg"
+    >{@html GithubOne(svgInit)}</a
+  >
+  <a class="icon" href="mailto:gm@miao.dev">{@html SendEmail(svgInit)}</a>
+  <a class="icon" href="https://miao.dev">{@html PeopleTopCard(svgInit)}</a>
+</div>
 <Panel />
 
 <style>
   :global(:root) {
-    --red: rgba(250, 65, 59, 0.8);
+    --red: rgba(255, 95, 89, 0.8);
     --green: rgb(46, 204, 64, 0.8);
-    --blue: rgb(55, 151, 255, 0.8);
+    --blue: #007bfc;
   }
   :global(*),
   :global(::after),
   :global(::before) {
     box-sizing: inherit;
+    font-family: 'Atkinson Hyperlegible', sans-serif;
   }
 
   :global(html) {
-    background-color: rgb(250, 250, 250);
+    background-color: rgb(246, 246, 246);
     color: rgba(10, 10, 10, 0.95);
     font-size: 16px;
+    font-family: 'Atkinson Hyperlegible', sans-serif;
     -moz-osx-font-smoothing: grayscale;
     -webkit-font-smoothing: antialiased;
     min-width: 300px;
@@ -59,15 +71,7 @@
     -moz-osx-font-smoothing: grayscale;
   }
 
-  :global(.panel) {
-    border-radius: 6px;
-    box-shadow: 0 0.5em 1em -0.125em rgb(10 10 10 / 10%),
-      0 0 0 1px rgb(10 10 10 / 2%);
-    font-size: 1rem;
-    background-color: #fff;
-  }
-
-  :global(box) {
+  :global(.box) {
     background-color: #fff;
     border-radius: 6px;
     box-shadow: 0 0.5em 1em -0.125em rgb(10 10 10 / 10%),
@@ -75,5 +79,32 @@
     color: #4a4a4a;
     display: block;
     padding: 1.25rem;
+  }
+
+  :global(.noselect) {
+    -webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none; /* Safari */
+    -khtml-user-select: none; /* Konqueror HTML */
+    -moz-user-select: none; /* Old versions of Firefox */
+    -ms-user-select: none; /* Internet Explorer/Edge */
+    user-select: none; /* Non-prefixed version, currently
+                                  supported by Chrome, Edge, Opera and Firefox */
+  }
+
+  .links {
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    padding: 1rem;
+    line-height: normal;
+    display: flex;
+    flex-direction: column;
+    z-index: 5000;
+  }
+
+  .links a {
+    margin-top: 1rem;
+    cursor: pointer;
+    display: block;
   }
 </style>

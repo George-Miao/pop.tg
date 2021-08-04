@@ -1,15 +1,11 @@
 export type Callback = () => void
 
-export interface HistoryProp {
+export interface HistoryStored {
   oldUrl: string
   newUrl: string
   token: string
   key: string
   ttl?: number
-  // Called on focused
-  // Return a callback whenever another is history is focused
-  // So it can get out of focus
-  focusedCallback: (cb: Callback) => void
 }
 
 export enum ManageEvent {
@@ -29,4 +25,10 @@ export enum HistoryStatus {
   Loading,
   Error,
   Done
+}
+
+export enum GoButtonStatus {
+  Disabled = 'disabled',
+  Loading = 'loading',
+  Normal = 'normal'
 }

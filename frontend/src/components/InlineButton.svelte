@@ -31,7 +31,7 @@
     border: unset;
     border-radius: unset;
     margin: unset;
-    transition: all 0.1s cubic-bezier(0.31, 0.4, 0.36, 1);
+    transition: all 0.2s cubic-bezier(0.31, 0.4, 0.36, 1);
   }
   .inline-button:hover {
     background-color: var(--hover-color);
