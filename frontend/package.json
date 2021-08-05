@@ -31,6 +31,7 @@
     "start:dev": "sirv public --dev"
   },
   "dependencies": {
-    "@icon-park/svg": "^1.3.3"
+    "@icon-park/svg": "^1.3.3",
+    "svelte-seo": "^1.2.1"
   }
 }

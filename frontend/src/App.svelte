@@ -1,8 +1,11 @@
 <script lang="ts">
-  import Panel from './components/Panel.svelte'
   import { GithubOne, SendEmail, PeopleTopCard } from '@icon-park/svg'
+  import SEO from 'svelte-seo'
+  import Panel from './components/Panel.svelte'
 
   const svgInit = { size: '2rem', fill: '#4c4c4c' }
+  const title = 'Pop.tg | URL shortener'
+  const description = 'A simple, easy-to-use and free URL shortener'
 </script>
 
 <div class="links">
@@ -12,6 +15,22 @@
   <a class="icon" href="mailto:gm@miao.dev">{@html SendEmail(svgInit)}</a>
   <a class="icon" href="https://miao.dev">{@html PeopleTopCard(svgInit)}</a>
 </div>
+<SEO
+  {title}
+  {description}
+  openGraph={{
+    title,
+    description,
+    url: 'https://www.pop.tg',
+    type: 'website'
+  }}
+  twitter={{
+    title,
+    description,
+    site: '@PopDotLol'
+  }}
+  keywords="url shortener, bitly, tinyurl, api, links shortener, tiny url, short url, short link, links shortening, free url shortener, custom url shortener, shortening url, shorten url, shorten links, url, link, url redirect, shorter link, customize url, customize link, url shortener no ads, url shortener without ads, pop.tg"
+/>
 <Panel />
 
 <style>

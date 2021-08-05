@@ -2,4 +2,4 @@
 
 ## About <a name = "about"></a>
 
-A simple, easy-to-use and free URL shortener based built with cf-worker.
+A simple, easy-to-use and free URL shortener built with cf-worker.
