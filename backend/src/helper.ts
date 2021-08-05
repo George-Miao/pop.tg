@@ -18,7 +18,7 @@ const redirectText = `
 <html><head>
 <title>Redirecting...</title>
 </head><body>
-<h1>302 Found</h1>
+<h1>Redirecting</h1>
 <p>This is a redirect page to <a href="{{ url }}">here</a>.</p>
 <p>The process should happen automatically by your browser</p>
 </body></html>`
@@ -88,6 +88,18 @@ export const redirectTemp = (ctx: Context) => async (url: string) => {
   ctx.respondWith(
     new Response(redirectText.replace('{{ url }}', url), {
       status: 302,
+      headers: {
+        'Location': url,
+        'Content-Type': 'text/html; charset=UTF-8'
+      }
+    })
+  )
+}
+
+export const redirectPerm = (ctx: Context) => async (url: string) => {
+  ctx.respondWith(
+    new Response(redirectText.replace('{{ url }}', url), {
+      status: 308,
       headers: {
         'Location': url,
         'Content-Type': 'text/html; charset=UTF-8'

@@ -14,6 +14,7 @@ import {
   defineMiddleware,
   err,
   ok,
+  redirectPerm,
   redirectTemp,
   unzip,
   validator
@@ -175,8 +176,12 @@ const redirect = defineMiddleware(async ctx => {
   else await redirectTemp(ctx)(value.value)
 })
 
+const index = defineMiddleware(async ctx => {
+  await redirectPerm(ctx)(own_url)
+})
+
 export default new Router()
-  .get('/', ctx => ctx.respondWith(new Response('Index'))) // todo: Index page, fetch frontend to respond
+  .get('/', index) // todo: Index page, fetch frontend to respond
   .get('/:key', redirect)
   .get('/api/records', list)
   .get('/api/records/:key', validateEndpoint('/api/records/:key'), get)

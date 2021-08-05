@@ -2,7 +2,7 @@ import { Application } from '@cfworker/web'
 import api from './api'
 import { ok, respondRaw } from './helper'
 
-export const own_url = 'https://pop.tg'
+export const own_url = 'https://www.pop.tg'
 
 new Application()
   .use(async (ctx, next) => {
