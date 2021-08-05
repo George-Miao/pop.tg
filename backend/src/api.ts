@@ -70,6 +70,7 @@ const post = defineMiddleware(async ctx => {
 
   if (await KV.get(`${prefix}-${key}`)) {
     err(ctx)('RecordDuplicated', `${key} is duplicated`)
+    return
   }
 
   const value: URLRecordInKv = {
@@ -98,6 +99,7 @@ const put = defineMiddleware(async ctx => {
       'It should be provided in url search paramter',
       'e.g. ?token=aOisj28VBdaDpz'
     ])
+    return
   }
 
   const body = await validator<PutRequest>(ctx, putSchema)
@@ -143,6 +145,7 @@ const del = defineMiddleware(async ctx => {
       'It should be provided in url search paramter',
       'e.g. ?token=aOisj28VBdaDpz'
     ])
+    return
   }
 
   const stored = await KV.get<URLRecordInKv>(`${prefix}-${key}`, 'json')
