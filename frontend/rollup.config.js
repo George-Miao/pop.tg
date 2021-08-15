@@ -48,22 +48,19 @@ export default {
       ]
     }),
     svelte({
-      // enable run-time checks when not in production
       dev: !production,
-      // we'll extract any component CSS out into
-      // a separate file — better for performance
       css: css => {
         css.write('public/bundle.css')
       },
-
       preprocess: preprocess(opts)
     }),
-
     resolve({
       extensions: ['.js', '.ts']
     }),
     typescript(),
-    commonjs(),
+    commonjs({
+      sourceMap: false
+    }),
     css(),
     // Give stats about the build
     // Size, file etc.

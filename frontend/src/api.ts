@@ -1,6 +1,8 @@
+import type { BulkQueryResponse, BulkQueryRequest } from '@back/model'
 import { timeout } from './util'
 import type {
   DelResponse,
+  GetResponse,
   ListRequest,
   ListResponse,
   PostRequest,
@@ -36,6 +38,19 @@ export const requestApi = async <T = undefined, R = unknown>(
     mode: 'cors'
   }).then(e => e.json()) as Promise<ResponseObject<R>>
 }
+
+export const bulkQuery = async (request: BulkQueryRequest) =>
+  requestApi<BulkQueryRequest, BulkQueryResponse>(
+    '/api/records_bulk',
+    Method.Post,
+    new URLSearchParams({
+      keys: request.join('+')
+    }),
+    request
+  )
+
+export const getRecord = async (request: { key: string }) =>
+  requestApi<{ key: string }, GetResponse>(`records/${request.key}`)
 
 export const newRecord = async (request: { key: string } & PostRequest) => {
   const { key, ...body } = request

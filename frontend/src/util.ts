@@ -1,6 +1,5 @@
-import type { HistoryStored } from './model'
-
-const windows = window as any
+import { bulkQuery } from './api'
+import { HistoryStored, isValidHistories } from './model'
 
 const urlReg =
   /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/
@@ -41,3 +40,37 @@ export const loadHistories = () => {
 
 export const saveHistories = (obj: HistoryStored[]) =>
   localStorage.setItem('histories', JSON.stringify(obj))
+
+export const loadJson = async () => {
+  var input = document.createElement('input')
+  input.type = 'file'
+  input.accept = '.json'
+
+  return new Promise<Event>(res => {
+    input.onchange = res
+    input.click()
+  })
+    .then(e => {
+      let file = (e.target as HTMLInputElement)?.files?.[0]
+      if (!file) {
+        throw new Error('No file selected')
+      } else return file
+    })
+    .then(readFile)
+    .then(async e => {
+      const result = e.target?.result
+      if (!result || result instanceof ArrayBuffer)
+        throw new Error('Invalid content')
+      const data = JSON.parse(result) as HistoryStored[]
+      if (await isValidHistories(data).then(e => !e))
+        throw new Error('Invalid data format')
+      return data
+    })
+}
+
+export const readFile = (dir: Blob) =>
+  new Promise<ProgressEvent<FileReader>>(res => {
+    var reader = new FileReader()
+    reader.readAsText(dir)
+    reader.onload = res
+  })

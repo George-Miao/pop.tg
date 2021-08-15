@@ -7,16 +7,18 @@
   import History from './History.svelte'
   import HoverButton from './HoverButton.svelte'
   import Input from './Input.svelte'
-  import { newRecord } from '../api'
+  import { bulkQuery, newRecord } from '../api'
   import { GoButtonStatus } from '../model'
   import type { Callback } from '../model'
   import {
     isValidToken,
     isValidUrl,
     loadHistories,
-    saveHistories,
-    timeout
+    loadJson,
+    saveHistories
   } from '../util'
+
+  import { saveAs } from 'file-saver'
 
   let storedFocusCallback: undefined | Callback = undefined
 
@@ -56,7 +58,7 @@
     }, 3000)
   }
 
-  let buttonStatus = GoButtonStatus.Disabled
+  let buttonStatus = GoButtonStatus.Normal
 
   let histories = loadHistories()
 
@@ -129,6 +131,51 @@
       buttonStatus = GoButtonStatus.Disabled
     }
   }
+
+  const dump = () => {
+    if (histories.length === 0) {
+      alert('Create or import some records first!')
+      return
+    }
+    const data = new Blob([JSON.stringify(histories)], {
+      type: 'application/json;charset=utf-8'
+    })
+    saveAs(data, 'url_dumps.json')
+  }
+
+  const load = async () => {
+    const loaded = await loadJson().catch((e: Error) => alert(e.message))
+    if (!loaded) return
+    const keys = histories.map(e => e.key)
+    const newHistory = loaded.filter(x => !keys.includes(x.key))
+    await bulkQuery(
+      newHistory.map(e => {
+        return {
+          key: e.key,
+          value: e.oldUrl,
+          token: e.token
+        }
+      })
+    )
+      .then(data => {
+        console.log('loading')
+        const records = data.content.body
+        if (!data.success || !records) alert('Failed to verify your data')
+        else {
+          console.log(records)
+          histories.push(
+            ...newHistory.filter(e => records.matched.includes(e.key))
+          )
+          if (records.unmatched.length > 0) {
+            alert("Some of your record is invalid, they're not added")
+          }
+          histories = histories
+          saveHistories(histories)
+          console.log('done')
+        }
+      })
+      .catch(e => alert(e.message))
+  }
 </script>
 
 <div class="outter" on:mousedown|self={clearFocusCallback}>
@@ -175,19 +222,101 @@
   {#if alerting}
     <div class="alerts" transition:fade>{alertMsg}</div>
   {/if}
-  <div class="histories" class:dodging={alerting}>
-    {#each histories as history (history.key)}
-      <History
-        prop={history}
-        {focusedCallback}
-        on:delete={deleteThis}
-        on:alert={handleAlert}
-      />
-    {/each}
+  {#if histories.length !== 0}
+    <div class="histories" class:dodging={alerting}>
+      {#each histories as history (history.key)}
+        <History
+          prop={history}
+          {focusedCallback}
+          on:delete={deleteThis}
+          on:alert={handleAlert}
+        />
+      {/each}
+    </div>
+  {/if}
+  <div class="btns">
+    <button
+      class="load"
+      on:click={load}
+      class:disable={buttonStatus === GoButtonStatus.Loading}
+      disabled={buttonStatus === GoButtonStatus.Loading}>Import</button
+    >
+    <button
+      class="dump"
+      on:click={dump}
+      class:disable={buttonStatus === GoButtonStatus.Loading}
+      disabled={buttonStatus === GoButtonStatus.Loading}>Dump</button
+    >
   </div>
 </div>
 
 <style>
+  .btns {
+    margin: 2rem;
+  }
+  .btns button {
+    position: relative;
+    transition: background 0.3s ease, box-shadow 0.3s ease;
+    height: 2.5rem;
+    margin-bottom: unset;
+    margin-top: 0.4rem;
+    width: 8rem;
+    animation: in 0.3s;
+    border: none;
+    background: rgb(240, 240, 240);
+    cursor: pointer;
+    color: rgba(22, 22, 22);
+  }
+
+  .btns button::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: -1;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    border-radius: 1.25rem;
+    box-shadow: 0 0 2px 0 rgba(0, 0, 0, 0.2);
+  }
+
+  .btns button:first-child {
+    border-radius: 1.25rem 0 0 1.25rem;
+  }
+
+  .btns button:first-child::after {
+    border-radius: 1.25rem 0 0 1.25rem;
+  }
+
+  .btns button:last-child {
+    border-radius: 0 1.25rem 1.25rem 0;
+  }
+
+  .btns button:last-child::after {
+    border-radius: 0 1.25rem 1.25rem 0;
+  }
+
+  .btns button:hover {
+    background: rgb(252, 252, 252);
+  }
+
+  .btns button:hover::after {
+    opacity: 1;
+  }
+
+  .btns button.disable {
+    cursor: not-allowed;
+  }
+
+  .btns button.disable::after:hover {
+    opacity: 0;
+  }
+
+  .btns button.disable:hover {
+    background: rgb(240, 240, 240);
+  }
+
   .outter {
     display: flex;
     align-items: center;
@@ -231,6 +360,7 @@
 
   .histories {
     margin: 1rem;
+    margin-bottom: 0;
     position: relative;
     width: min(max(40%, 32rem), 90%);
     padding: 1rem;
