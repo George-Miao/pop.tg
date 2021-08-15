@@ -68,7 +68,9 @@ export interface PostRequest {
   ttl?: number
 }
 
-export type BulkQueryRequest = (Token & URLRecord)[]
+export type BulkQuerySingle = Token & Omit<URLRecord, 'expire'>
+
+export type BulkQueryRequest = BulkQuerySingle[]
 
 export interface PutRequest extends PostRequest {}
 

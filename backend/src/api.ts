@@ -225,7 +225,7 @@ export default new Router()
   .get('/', index) // todo: Index page, fetch frontend to respond
   .get('/:key', redirect)
   .get('/api/records', list)
-  .get('/api/records_bulk', bulk)
+  .post('/api/records_bulk', bulk)
   .get('/api/records/:key', validateEndpoint('/api/records/:key'), get)
   .post('/api/records/:key', validateEndpoint('/api/records/:key'), post)
   .put('/api/records/:key', validateEndpoint('/api/records/:key'), put)
