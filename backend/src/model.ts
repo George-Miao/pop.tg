@@ -4,6 +4,7 @@ export enum SuccessResponseCode {
   RecordUpdated = 102,
   RecordDeleted = 103,
   RecordListed = 104,
+  BulkQuerySuccess = 105,
   OtherSuccess = 199
 }
 
@@ -13,6 +14,7 @@ export enum ErrorResponseCode {
   RecordDuplicated = 203,
   RecordNotFound = 204,
   AuthorizeFailed = 205,
+  BulkQueryFailed = 206,
   OtherError = 299
 }
 
@@ -77,6 +79,11 @@ export interface ListRequest {
 /* -------------------------------------------------------------------------- */
 
 export interface GetResponse extends URLRecord {}
+
+export interface BulkQueryResponse {
+  found: Record<string, URLRecord>
+  missing: string[]
+}
 
 export interface PostResponse extends Token, URLRecord {}
 

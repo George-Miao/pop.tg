@@ -1,6 +1,8 @@
+// @collapse
 import { Router } from '@cfworker/web'
 
 import {
+  BulkQueryResponse,
   DelResponse,
   GetResponse,
   PostRequest,
@@ -19,7 +21,7 @@ import {
   unzip,
   validator
 } from './helper'
-import { expire, genToken } from './utils'
+import { clean, expire, genToken } from './utils'
 import postSchema from './schema/post.schema'
 import putSchema from './schema/put.schema'
 import { own_url } from '.'
@@ -60,6 +62,41 @@ const get = defineMiddleware(async ctx => {
       expire: value.expire
     }
     ok(ctx)('RecordFound', ret)
+  }
+})
+
+const bulk = defineMiddleware(async ctx => {
+  const keys = ctx.req.url.searchParams.get('keys')?.split('+')
+  if (!keys) {
+    err(ctx)('BadRequest', 'Expected url parameter keys')
+  } else if (keys.length > 20) {
+    err(ctx)(
+      'BadRequest',
+      'Number of keys in one bulk query should not exceed 20'
+    )
+  } else {
+    const ret: BulkQueryResponse = {
+      found: {},
+      missing: []
+    }
+    try {
+      await Promise.all(
+        keys.map(async key => {
+          const stored = await KV.get<URLRecordInKv>(`${prefix}-${key}`, 'json')
+          if (!stored) ret.missing.push(key)
+          else {
+            ret.found[key] = {
+              key: stored.key,
+              value: stored.value
+            }
+            if (stored.expire) ret.found[key].expire = stored.expire
+          }
+        })
+      )
+      ok(ctx)('BulkQuerySuccess', ret)
+    } catch (e) {
+      err(ctx)('BulkQueryFailed', (e as Error).message)
+    }
   }
 })
 
@@ -187,6 +224,7 @@ export default new Router()
   .get('/', index) // todo: Index page, fetch frontend to respond
   .get('/:key', redirect)
   .get('/api/records', list)
+  .get('/api/records_bulk', bulk)
   .get('/api/records/:key', validateEndpoint('/api/records/:key'), get)
   .post('/api/records/:key', validateEndpoint('/api/records/:key'), post)
   .put('/api/records/:key', validateEndpoint('/api/records/:key'), put)
