@@ -80,8 +80,7 @@ export const validator = async <T = unknown>(ctx: Context, schema: Schema) => {
       'BadRequest',
       result.errors.map(e => e.error)
     )
-  }
-  return data
+  } else return data
 }
 
 export const redirectTemp = (ctx: Context) => async (url: string) => {

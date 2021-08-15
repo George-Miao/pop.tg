@@ -1,7 +1,7 @@
-// @collapse
 import { Router } from '@cfworker/web'
 
 import {
+  BulkQueryRequest,
   BulkQueryResponse,
   DelResponse,
   GetResponse,
@@ -24,6 +24,8 @@ import {
 import { clean, expire, genToken } from './utils'
 import postSchema from './schema/post.schema'
 import putSchema from './schema/put.schema'
+import bulkSchema from './schema/bulk.schema'
+
 import { own_url } from '.'
 
 const keyPattern = '^[a-zA-Z0-9_-]{2,12}$'
@@ -66,37 +68,32 @@ const get = defineMiddleware(async ctx => {
 })
 
 const bulk = defineMiddleware(async ctx => {
-  const keys = ctx.req.url.searchParams.get('keys')?.split('+')
-  if (!keys) {
-    err(ctx)('BadRequest', 'Expected url parameter keys')
-  } else if (keys.length > 20) {
-    err(ctx)(
-      'BadRequest',
-      'Number of keys in one bulk query should not exceed 20'
+  const body = await validator<BulkQueryRequest>(ctx, bulkSchema)
+  if (!body) return
+  const ret: BulkQueryResponse = {
+    matched: [],
+    unmatched: [],
+    missing: []
+  }
+  try {
+    await Promise.all(
+      body.map(async item => {
+        const stored = await KV.get<URLRecordInKv>(
+          `${prefix}-${item.key}`,
+          'json'
+        )
+        if (!stored) ret.missing.push(item.key)
+        // Check if these two have the same token and value (target url)
+        else if (stored.token !== item.token || stored.value !== item.value) {
+          ret.unmatched.push(item.key)
+        } else {
+          ret.matched.push(item.key)
+        }
+      })
     )
-  } else {
-    const ret: BulkQueryResponse = {
-      found: {},
-      missing: []
-    }
-    try {
-      await Promise.all(
-        keys.map(async key => {
-          const stored = await KV.get<URLRecordInKv>(`${prefix}-${key}`, 'json')
-          if (!stored) ret.missing.push(key)
-          else {
-            ret.found[key] = {
-              key: stored.key,
-              value: stored.value
-            }
-            if (stored.expire) ret.found[key].expire = stored.expire
-          }
-        })
-      )
-      ok(ctx)('BulkQuerySuccess', ret)
-    } catch (e) {
-      err(ctx)('BulkQueryFailed', (e as Error).message)
-    }
+    ok(ctx)('BulkQuerySuccess', ret)
+  } catch (e) {
+    err(ctx)('BulkQueryFailed', (e as Error).message)
   }
 })
 
@@ -104,6 +101,8 @@ const post = defineMiddleware(async ctx => {
   const { key } = unzip(ctx)
 
   const body = await validator<PostRequest>(ctx, postSchema)
+
+  if (!body) return
 
   if (await KV.get(`${prefix}-${key}`)) {
     err(ctx)('RecordDuplicated', `${key} is duplicated`)
@@ -140,6 +139,8 @@ const put = defineMiddleware(async ctx => {
   }
 
   const body = await validator<PutRequest>(ctx, putSchema)
+
+  if (!body) return
 
   const stored = await KV.get<URLRecordInKv>(`${prefix}-${key}`, 'json')
 

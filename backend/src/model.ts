@@ -68,6 +68,8 @@ export interface PostRequest {
   ttl?: number
 }
 
+export type BulkQueryRequest = (Token & URLRecord)[]
+
 export interface PutRequest extends PostRequest {}
 
 export interface ListRequest {
@@ -81,7 +83,8 @@ export interface ListRequest {
 export interface GetResponse extends URLRecord {}
 
 export interface BulkQueryResponse {
-  found: Record<string, URLRecord>
+  matched: string[]
+  unmatched: string[]
   missing: string[]
 }
 
