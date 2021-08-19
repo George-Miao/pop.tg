@@ -1,0 +1,32 @@
+{
+  "name": "pop.tg-backend",
+  "version": "1.0.0",
+  "description": "Pop.tg URL shortender backend worker",
+  "license": "MIT",
+  "author": "author",
+  "main": "dist/worker.js",
+  "scripts": {
+    "build": "webpack",
+    "format": "prettier --write  '*.{json,js}' 'src/**/*.{js,ts}' 'test/**/*.{js,ts}'",
+    "kv:list": "wrangler kv:key list --binding LOG",
+    "lint": "eslint --max-warnings=0 src && prettier --check '*.{json,js}' 'src/**/*.{js,ts}' 'test/**/*.{js,ts}'",
+    "pub": "wrangler publish"
+  },
+  "dependencies": {
+    "@cfworker/json-schema": "^1.6.5",
+    "@cfworker/web": "1.8.3",
+    "yup": "^0.32.9"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^2.2.2",
+    "@types/frisby": "^2.0.10",
+    "@types/jest": "^27.0.1",
+    "frisby": "^2.1.3",
+    "jest": "^27.0.6",
+    "ts-jest": "^27.0.5",
+    "ts-loader": "^7.0.5",
+    "typescript": "^4.3.2",
+    "webpack": "^5.50.0",
+    "webpack-cli": "^4.7.2"
+  }
+}
