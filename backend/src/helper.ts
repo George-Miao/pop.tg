@@ -15,13 +15,18 @@ export const defineMiddleware = (middeware: Middleware) => middeware
 
 const redirectText = `
 <!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 2.0//EN">
-<html><head>
-<title>Redirecting...</title>
-</head><body>
-<h1>Redirecting</h1>
-<p>This is a redirect page to <a href="{{ url }}">here</a>.</p>
-<p>The process should happen automatically by your browser</p>
-</body></html>`
+<html>
+  <head>
+    <title>Redirecting...</title>
+  </head>
+  <body>
+    <h1>Redirecting</h1>
+    <p>This is a redirect page to <pre> {{ url }} </pre></p>
+    <p>The process should be done automatically by your browser</p>
+    <br />
+    <p>If not, click: </p> <a href="{{ url }}">here</a>
+  </body>
+</html>`
 
 export const baseResp = (): ResponseBase => {
   return {
@@ -53,19 +58,14 @@ export const ok =
 
 export const err =
   (ctx: Context) =>
-  (
-    status_text: keyof typeof ErrorResponseCode,
-    reason: string | string[],
-    body?: Body
-  ) =>
+  (status_text: keyof typeof ErrorResponseCode, reason: string | string[]) =>
     respond(ctx, {
       ...baseResp(),
       success: false,
       status_text,
       status: ErrorResponseCode[status_text],
       content: {
-        reason,
-        body
+        reason
       }
     })
 

@@ -19,32 +19,35 @@ export enum ErrorResponseCode {
 }
 
 export type Body = string | string[] | Object
+export type Reason = string | string[]
 
 export interface ResponseBase {
   time: number
 }
 
-export interface ErrorResponseObject<T = Body> extends ResponseBase {
+export interface ErrorResponseContent {
+  reason: Reason
+}
+
+export interface ErrorResponseObject extends ResponseBase {
   success: false
   status: ErrorResponseCode
   status_text: keyof typeof ErrorResponseCode
-  content: {
-    reason: string | string[]
-    body?: T
-  }
+  content: ErrorResponseContent
+}
+export interface SuccessResponseContent<T = Body> {
+  body?: T
 }
 
 export interface SuccessResponseObject<T = Body> extends ResponseBase {
   success: true
   status: SuccessResponseCode
   status_text: keyof typeof SuccessResponseCode
-  content: {
-    body?: T
-  }
+  content: SuccessResponseContent<T>
 }
 
 export type ResponseObject<T = Body> =
-  | ErrorResponseObject<T>
+  | ErrorResponseObject
   | SuccessResponseObject<T>
 
 export interface URLRecord {

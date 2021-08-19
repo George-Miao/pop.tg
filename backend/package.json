@@ -14,7 +14,8 @@
   },
   "dependencies": {
     "@cfworker/json-schema": "^1.6.5",
-    "@cfworker/web": "1.8.3"
+    "@cfworker/web": "1.8.3",
+    "yup": "^0.32.9"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^2.2.2",

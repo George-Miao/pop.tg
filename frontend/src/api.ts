@@ -43,9 +43,7 @@ export const bulkQuery = async (request: BulkQueryRequest) =>
   requestApi<BulkQueryRequest, BulkQueryResponse>(
     '/api/records_bulk',
     Method.Post,
-    new URLSearchParams({
-      keys: request.join('+')
-    }),
+    undefined,
     request
   )
 
