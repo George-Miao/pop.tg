@@ -2,8 +2,6 @@ import { call, callSuccess, genKey } from './common'
 
 const newKey = genKey()
 
-console.log(newKey)
-
 it('should create a new proper object', async () => {
   await callSuccess('new_record', {
     key: newKey,

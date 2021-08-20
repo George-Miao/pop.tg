@@ -48,7 +48,6 @@ it('should verify', async () => {
   )
   await new Promise(res => {
     setTimeout(() => {
-      console.log('Waited for 2 seconds')
       callSuccess('verify_record', {
         values: dataToVerify.map(e => {
           return {
