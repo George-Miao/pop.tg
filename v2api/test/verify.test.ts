@@ -57,7 +57,6 @@ it('should verify', async () => {
           }
         })
       })
-        .inspectJSON()
         .then(res => {
           const result = res.json.result
           expect(result.matched.length).toBe(5)

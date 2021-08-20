@@ -9,7 +9,6 @@ it('should create a new proper object', async () => {
     key: newKey,
     value: 'https://example.com'
   })
-    .inspectJSON()
     .expect('json', 'result.key', newKey)
     .then(async res => {
       const result = res.json.result
