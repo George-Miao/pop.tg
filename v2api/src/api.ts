@@ -9,8 +9,7 @@ import {
 } from 'src/model'
 import { ApiError, Methods } from './helper'
 import * as yup from 'yup'
-
-const prefix = 'url-'
+import { prefix } from '.'
 
 // Unique identifier for record
 const key = yup

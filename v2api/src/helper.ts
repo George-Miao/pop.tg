@@ -2,6 +2,7 @@ import { ErrorResponse, ErrorsCode, Handler, ResponseObject } from './model'
 import { Context, Router } from '@cfworker/web'
 import { AnySchema, Asserts } from 'yup'
 
+const redirectText = `<!DOCTYPE html PUBLIC "-//IETF//DTD HTML 2.0//EN"><html><head><title>Redirecting...</title></head><body><h1>Redirecting</h1><p>This is a redirect page to<code> {{ url }} </code></p><p>The process should be done automatically by your browser</p><br /><span><label>If not, click: </label><a href="{{ url }}">here</a></span></body></html>`
 export class ApiError<S extends keyof typeof ErrorsCode> extends Error {
   private _status: keyof typeof ErrorsCode
   private _reason: string[]
@@ -115,3 +116,27 @@ export const respondRaw = (
 }
 
 export const exist = async (key: string) => KV.get(key).then(e => !!e)
+
+export const redirectTemp = (ctx: Context) => async (url: string) => {
+  ctx.respondWith(
+    new Response(redirectText.replaceAll('{{ url }}', url), {
+      status: 302,
+      headers: {
+        'Location': url,
+        'Content-Type': 'text/html; charset=UTF-8'
+      }
+    })
+  )
+}
+
+export const redirectPerm = (ctx: Context) => async (url: string) => {
+  ctx.respondWith(
+    new Response(redirectText.replaceAll('{{ url }}', url), {
+      status: 308,
+      headers: {
+        'Location': url,
+        'Content-Type': 'text/html; charset=UTF-8'
+      }
+    })
+  )
+}
