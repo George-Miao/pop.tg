@@ -8,8 +8,7 @@
   "scripts": {
     "build": "webpack",
     "format": "prettier --write  '*.{json,js}' 'src/**/*.{js,ts}' 'test/**/*.{js,ts}'",
-    "kv:list": "wrangler kv:key list --binding LOG",
-    "lint": "eslint --max-warnings=0 src && prettier --check '*.{json,js}' 'src/**/*.{js,ts}' 'test/**/*.{js,ts}'",
+    "kv:list": "wrangler kv:key list --binding",
     "pub": "wrangler publish"
   },
   "dependencies": {
