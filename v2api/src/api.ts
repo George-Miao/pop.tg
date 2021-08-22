@@ -81,7 +81,7 @@ export default new Methods('api/v2')
       if (!stored)
         throw new ApiError('RecordNotFound', `Record ${key} not found`)
 
-      if (stored.token !== body.token && body.token !== AUTH)
+      if (stored.token !== body.token)
         throw new ApiError(
           'NotAuthorized',
           `Authorized failed, your token is invalid`
