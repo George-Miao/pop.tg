@@ -16,4 +16,4 @@ A simple, easy-to-use and free URL shortener built with cf-worker.
 
 _Maybe_ a CLI written in Rust, not sure yet
 
-_Maybe_ `Namespace` ( e.g. https://pop.tg/MyName/key ), but that would require a user registration system, which I'm not too lazy to implement
+_Maybe_ `Namespace` ( e.g. https://pop.tg/MyName/key ), but that would require a user registration system, which I'm too lazy to implement
