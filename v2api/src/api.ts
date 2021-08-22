@@ -1,8 +1,9 @@
 import { genToken, expire } from './utils'
 import {
-  BulkQueryResponse,
+  VerifyResponse,
   DelResponse,
   GetResponse,
+  ListResponse,
   PostResponse,
   PutResponse,
   URLRecordInKv
@@ -139,7 +140,7 @@ export default new Methods('api/v2')
         keys: value.keys.map(e => (e.name = e.name.replace(prefix, ''))),
         list_complete: value.list_complete,
         cursor: value.cursor
-      }
+      } as ListResponse
     }
   )
   .method(
@@ -157,7 +158,7 @@ export default new Methods('api/v2')
         .required()
     }),
     async body => {
-      const ret: BulkQueryResponse = {
+      const ret: VerifyResponse = {
         matched: [],
         unmatched: [],
         missing: []

@@ -48,7 +48,7 @@ export interface IMethod<S extends AnySchema, B extends Asserts<S>, R> {
 
 export interface GetResponse extends URLRecord {}
 
-export interface BulkQueryResponse {
+export interface VerifyResponse {
   matched: string[]
   unmatched: string[]
   missing: string[]
@@ -61,7 +61,7 @@ export interface PutResponse extends Token, URLRecord {}
 export interface DelResponse extends URLRecord {}
 
 export interface ListResponse {
-  length: number
+  keys: string[]
+  list_complete: boolean
   cursor: string
-  records: URLRecord[]
 }
