@@ -228,6 +228,7 @@
           {focusedCallback}
           on:delete={deleteThis}
           on:alert={handleAlert}
+          on:update={() => saveHistories(histories)}
         />
       {/each}
     </div>
