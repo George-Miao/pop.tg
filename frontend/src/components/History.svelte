@@ -118,16 +118,17 @@
         }
         status = HistoryStatus.Loading
         v2api
-          .updateRecord(prop.key, prop.token, newValue, prop.ttl)
-          .then(e => {
+          .updateRecord(prop.key, newValue, prop.token, prop.ttl)
+          .then(async e => {
             if (!e.ok) {
               error(`[${e.error_code}] ${e.error_text}`)
             } else {
               const body = e.result
-              done(`Updated`).then(() => {
+              await done(`Updated`).then(() => {
                 prop.oldUrl = newValue
                 prop.token = body.token
               })
+              eventDispatcher('update')
             }
           })
           .catch(e => {
