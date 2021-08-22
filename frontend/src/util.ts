@@ -1,4 +1,3 @@
-import { bulkQuery } from './api'
 import { HistoryStored, isValidHistories } from './model'
 
 const urlReg =
