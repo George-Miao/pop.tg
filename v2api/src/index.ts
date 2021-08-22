@@ -1,6 +1,6 @@
 import { Application, Router } from '@cfworker/web'
 import api from './api'
-import { redirectPerm, redirectTemp } from './helper'
+import { redirectPerm, redirectTemp, respondRaw } from './helper'
 import { URLRecordInKv } from './model'
 
 const own_url = 'https://www.pop.tg'
@@ -18,4 +18,15 @@ const redirect = new Router()
     else await redirectTemp(ctx)(value.value)
   }).middleware
 
-new Application().use(redirect).use(api).listen()
+new Application()
+  .use(async (ctx, next) => {
+    const method = ctx.req.method
+    if (method === 'HEAD' || method === 'OPTIONS') {
+      respondRaw(ctx, null, {
+        status: 204
+      })
+    } else await next()
+  })
+  .use(redirect)
+  .use(api)
+  .listen()

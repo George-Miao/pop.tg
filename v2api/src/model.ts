@@ -1,5 +1,5 @@
-import { Context } from '@cfworker/web'
 import { AnySchema, Asserts } from 'yup'
+import { Handler } from './helper'
 
 export interface SuccessResponse<T> {
   ok: true
@@ -22,8 +22,6 @@ export enum ErrorsCode {
   RecordNotFound = 104
 }
 
-export type Handler<B, R> = (body: B, ctx: Context) => Promise<R> | R
-
 export interface URLRecord {
   key: string
   value: string
@@ -35,12 +33,6 @@ interface Token {
 }
 
 export interface URLRecordInKv extends URLRecord, Token {}
-
-export interface IMethod<S extends AnySchema, B extends Asserts<S>, R> {
-  name: string
-  handler: Handler<B, R>
-  schema?: AnySchema
-}
 
 /* -------------------------------------------------------------------------- */
 /*                               Response Models                              */

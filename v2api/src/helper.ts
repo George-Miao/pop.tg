@@ -1,4 +1,4 @@
-import { ErrorResponse, ErrorsCode, Handler, ResponseObject } from './model'
+import { ErrorResponse, ErrorsCode, ResponseObject } from './model'
 import { Context, Router } from '@cfworker/web'
 import { AnySchema, Asserts } from 'yup'
 
@@ -140,3 +140,5 @@ export const redirectPerm = (ctx: Context) => async (url: string) => {
     })
   )
 }
+
+export type Handler<B, R> = (body: B, ctx: Context) => Promise<R> | R
