@@ -1,13 +1,15 @@
 <script lang="ts">
   import { Check, Close } from '@icon-park/svg'
-  import { slide } from 'svelte/transition'
-  import { HistoryStatus, ManageEvent } from '../model'
-  import type { HistoryStored, Callback } from '../model'
-  import InlineButton from './InlineButton.svelte'
   import { createEventDispatcher, getContext } from 'svelte'
-  import { deleteRecord, updateRecord } from '@/api'
-  import { copy, isValidUrl, sleep } from '@/util'
   import type { Writable } from 'svelte/store'
+  import { slide } from 'svelte/transition'
+
+  import v2api from '@/v2api'
+  import { copy, isValidUrl, sleep } from '@/util'
+  import type { Callback, HistoryStored } from '@/model'
+  import { HistoryStatus, ManageEvent } from '@/model'
+
+  import InlineButton from './InlineButton.svelte'
 
   export let prop: HistoryStored
   export let focusedCallback: (cb: Callback) => void
@@ -78,10 +80,11 @@
       case ManageEvent.RemoveConfirm: {
         status = HistoryStatus.Loading
         // Try remove
-        deleteRecord({ key: prop.key, token: prop.token })
+        v2api
+          .deleteRecord(prop.key, prop.token)
           .then(e => {
-            if (!e.success) {
-              error(`Error deleting: [${e.status}] ${e.status_text}`)
+            if (!e.ok) {
+              error(`Error deleting: [${e.error_code}] ${e.error_text}`)
             } else {
               done(`Done deleting ${prop.key}`).then(() =>
                 eventDispatcher('delete', {
@@ -114,17 +117,13 @@
           return
         }
         status = HistoryStatus.Loading
-        updateRecord({
-          key: prop.key,
-          token: prop.token,
-          value: newValue,
-          ttl: prop.ttl
-        })
+        v2api
+          .updateRecord(prop.key, prop.token, newValue, prop.ttl)
           .then(e => {
-            const body = e.content.body
-            if (!e.success || !body) {
-              error(`[${e.status}] ${e.status_text}`)
+            if (!e.ok) {
+              error(`[${e.error_code}] ${e.error_text}`)
             } else {
+              const body = e.result
               done(`Updated`).then(() => {
                 prop.oldUrl = newValue
                 prop.token = body.token

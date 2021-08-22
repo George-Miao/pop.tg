@@ -6,7 +6,8 @@
     "baseUrl": "./",
     "paths": {
       "@/*": ["src/*"],
-      "@back/*": ["../backend/src/*"]
+      "@back/*": ["../backend/src/*"],
+      "@v2/*": ["../v2api/src/*"]
     },
     "typeRoots": ["./node_modules/@types"],
     /* Basic Options */

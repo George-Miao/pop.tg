@@ -1,24 +1,25 @@
 <script lang="ts">
-  import { fade } from 'svelte/transition'
-  import { writable } from 'svelte/store'
+  import { saveAs } from 'file-saver'
   import { setContext, tick } from 'svelte'
+  import { writable } from 'svelte/store'
+  import { fade } from 'svelte/transition'
 
   import { genToken } from '@back/utils'
-  import History from './History.svelte'
-  import HoverButton from './HoverButton.svelte'
-  import Input from './Input.svelte'
-  import { bulkQuery, newRecord } from '../api'
-  import { GoButtonStatus } from '../model'
-  import type { Callback } from '../model'
+
+  import type { Callback } from '@/model'
+  import { GoButtonStatus } from '@/model'
   import {
     isValidToken,
     isValidUrl,
     loadHistories,
     loadJson,
     saveHistories
-  } from '../util'
+  } from '@/util'
+  import v2api from '@/v2api'
 
-  import { saveAs } from 'file-saver'
+  import History from './History.svelte'
+  import HoverButton from './HoverButton.svelte'
+  import Input from './Input.svelte'
 
   let storedFocusCallback: undefined | Callback = undefined
 
@@ -43,7 +44,7 @@
 
   let alerting = false
   let alertMsg = ''
-  let alertTimeout: number | null
+  let alertTimeout: NodeJS.Timeout | null
 
   const alert = (message: string) => {
     if (alertTimeout) {
@@ -80,15 +81,11 @@
 
     buttonStatus = GoButtonStatus.Loading
 
-    const request = {
-      key,
-      value: url
-    }
-
-    newRecord(request)
+    v2api
+      .newRecord(key, url)
       .then(resp => {
-        if (resp.success && resp.content.body) {
-          const body = resp.content.body
+        if (resp.ok) {
+          const body = resp.result
           const obj = {
             key: body.key,
             token: body.token,
@@ -103,7 +100,7 @@
           tick().then(() => add.set(body.key))
         } else {
           buttonStatus = GoButtonStatus.Disabled
-          alert(`[${resp.status}] ${resp.status_text}`)
+          alert(`[${resp.error_code}] ${resp.error_text}`)
         }
       })
       .catch(e => {
@@ -148,20 +145,21 @@
     if (!loaded) return
     const keys = histories.map(e => e.key)
     const newHistory = loaded.filter(x => !keys.includes(x.key))
-    await bulkQuery(
-      newHistory.map(e => {
-        return {
-          key: e.key,
-          value: e.oldUrl,
-          token: e.token
-        }
-      })
-    )
+    await v2api
+      .verifyRecord(
+        newHistory.map(e => {
+          return {
+            key: e.key,
+            value: e.oldUrl,
+            token: e.token
+          }
+        })
+      )
       .then(data => {
         console.log('loading')
-        const records = data.content.body
-        if (!data.success || !records) alert('Failed to verify your data')
+        if (!data.ok || !data.result) alert('Failed to verify your data')
         else {
+          const records = data.result
           console.log(records)
           histories.push(
             ...newHistory.filter(e => records.matched.includes(e.key))
