@@ -1,5 +1,9 @@
-import type { BulkQueryResponse, BulkQueryRequest } from '@back/model'
-import { timeout } from './util'
+import { clean } from '@back/utils'
+import type {
+  BulkQueryResponse,
+  BulkQueryRequest,
+  V2ListResponse
+} from '@back/model'
 import type {
   DelResponse,
   GetResponse,
@@ -91,4 +95,57 @@ export const deleteRecord = async (request: { key: string; token: string }) => {
     Method.Delete,
     param
   )
+}
+
+export class V2API {
+  readonly base = 'https://pop.tg/api/v2/'
+  constructor() {}
+  async fetch<Req, Res>(method: string, req: Req): Promise<Res> {
+    const url = this.base + method
+    return (await fetch(url, {
+      body: JSON.stringify(clean(req)),
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    }).then(e => e.json())) as Res
+  }
+
+  async getRecord(key: string): Promise<GetResponse> {
+    return await this.fetch('get_record', { key })
+  }
+
+  async newRecord(
+    key: string,
+    value: string,
+    ttl?: number
+  ): Promise<PostResponse> {
+    return await this.fetch('new_record', { key, value, ttl })
+  }
+
+  async updateRecord(
+    key: string,
+    value: string,
+    token: string,
+    ttl?: number
+  ): Promise<PutResponse> {
+    return await this.fetch('update_record', { key, value, token, ttl })
+  }
+
+  async deleteRecord(key: string, token: string): Promise<DelResponse> {
+    return await this.fetch('delete_record', { key, token })
+  }
+
+  async listRecord(cursor?: string): Promise<V2ListResponse> {
+    return await this.fetch('list_record', { cursor })
+  }
+
+  async verifyRecord(
+    values: {
+      key: string
+      value: string
+      token: string
+    }[]
+  ): Promise<BulkQueryResponse> {
+    return await this.fetch('verify_record', { values })
+  }
 }

@@ -104,3 +104,9 @@ export interface ListResponse {
   cursor: string
   records: URLRecord[]
 }
+
+export interface V2ListResponse {
+  keys: string[]
+  list_complete: boolean
+  cursor: string
+}
