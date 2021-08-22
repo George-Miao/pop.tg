@@ -16,6 +16,7 @@ export default {
     const url = this.base + method
     return (await fetch(url, {
       body: JSON.stringify(clean(req)),
+      method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       }
