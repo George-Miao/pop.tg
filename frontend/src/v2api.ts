@@ -9,7 +9,7 @@ import type {
   ResponseObject
 } from '@v2/model'
 
-const test = true
+const test = false
 export default {
   base: test ? 'http://127.0.0.1:8787/api/v2/' : 'https://pop.tg/api/v2/',
   async fetch<Req, Res>(method: string, req: Req) {
