@@ -7,7 +7,9 @@ A simple, easy-to-use and free URL shortener built with cf-worker.
 ## Project Structure
 
 `backend`: Legacy V1 API, not using or deployed anymore
+
 `frontend`: www.pop.tg frontend, built using svelte
+
 `v2api`: V2 API, naive RPC-like syntax for various method call, deployed on Cloudflare Workers
 
 ## TODO
