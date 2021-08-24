@@ -1,5 +1,7 @@
 # Pop.tg URL shortener
 
+## *! DEPRECATED: MOVED TO [HERE](https://github.com/Pop-tg/main) !*
+
 ## About <a name = "about"></a>
 
 A simple, easy-to-use and free URL shortener built with cf-worker.
